@@ -1,14 +1,12 @@
 ## Schema API Client for NodeJS
 
-*Schema is the platform to build and scale ecommerce.*
+Build and scale ecommerce with Schema. Create a free account at https://schema.io
 
-Create a free account at https://schema.io
-
-## Usage example
+## Install
 
 	npm install schema-client
 
-## Usage example
+## Example
 
 	var Schema = require('schema-client');
 
