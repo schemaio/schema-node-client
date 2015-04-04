@@ -8,6 +8,7 @@ Build and scale ecommerce with Schema. Create a free account at https://schema.i
 
 ## Example
 
+```javascript
 	var Schema = require('schema-client');
 
 	var client = new Schema.Client('client_id', 'client_key');
@@ -15,6 +16,7 @@ Build and scale ecommerce with Schema. Create a free account at https://schema.i
 	client.get('/categories/shoes/products', {color: 'blue'}, function(products) {
 		console.log(products);
 	});
+```
 
 ## Documentation
 
