@@ -2,7 +2,7 @@
 
 *Schema is the platform to build and scale ecommerce.*
 
-Create an account at https://schema.io
+Create a free account at https://schema.io
 
 ## Usage example
 
