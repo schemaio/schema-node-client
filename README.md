@@ -1,6 +1,6 @@
 ## Schema API Client for NodeJS
 
-*Schema is the API-centric platform to build and scale ecommerce.*
+*Schema is the platform to build and scale ecommerce.*
 
 Create an account at https://schema.io
 
