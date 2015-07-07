@@ -1,6 +1,6 @@
 ## Schema API Client for NodeJS
 
-Build and scale ecommerce with Schema. Create a free account at https://schema.io
+Build and scale ecommerce with Schema. Create a free account at <https://schema.io>
 
 ## Install
 
@@ -20,7 +20,7 @@ client.get('/categories/shoes/products', {color: 'blue'}, function(products) {
 
 ## Documentation
 
-See <http://schema.io/docs/clients#node> for more API docs and usage examples
+See <https://schema.io/docs> for more API docs and usage examples
 
 ## Contributing
 
