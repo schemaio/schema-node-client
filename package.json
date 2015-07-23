@@ -1,6 +1,6 @@
 {
     "name": "schema-client",
-    "version": "1.2.2",
+    "version": "1.2.4",
     "description": "Schema API Client for NodeJS",
     "author": "Schema",
     "main": "./lib/client.js",
