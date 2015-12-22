@@ -1,6 +1,6 @@
 {
   "name": "schema-client",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "Schema API Client for NodeJS",
   "keywords": [
     "schema",
@@ -18,7 +18,7 @@
   "engines": {
     "node": ">= v0.10.0"
   },
-  "main": "lib/client.js",
+  "main": "./lib/client.js",
   "devDependencies": {
     "chai": "~3.4.1",
     "eslint": "^1.10.3",
