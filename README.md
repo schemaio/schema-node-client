@@ -1,4 +1,4 @@
-## Schema API Client for NodeJS
+## Schema API Client for NodeJS [![Build Status](https://travis-ci.org/schemaio/schema-node-client.png?branch=master)](https://travis-ci.org/schemaio/schema-node-client)
 
 Build and scale ecommerce with Schema. Create a free account at <https://schema.io>
 
