@@ -177,13 +177,13 @@ describe('Client', function() {
     var client;
     var serverSpy;
     var connectSpy;
-    var responseStub;
+    var respondStub;
     var serverRequestStub;
 
     before(function() {
       serverSpy = sinon.spy(Schema, 'Connection');
       connectSpy = sinon.spy(Schema.Client.prototype, 'connect');
-      responseStub = sinon.spy(Schema.Client.prototype, 'response');
+      respondStub = sinon.spy(Schema.Client.prototype, 'respond');
       serverRequestStub = sinon.stub(Schema.Connection.prototype, 'request');
     });
 
@@ -191,14 +191,14 @@ describe('Client', function() {
       client = new Schema.Client('id', 'key');
       serverSpy.reset();
       connectSpy.reset();
-      responseStub.reset();
+      respondStub.reset();
       serverRequestStub.reset();
     });
 
     after(function() {
       serverSpy.restore();
       connectSpy.restore();
-      responseStub.restore();
+      respondStub.restore();
       serverRequestStub.restore();
     });
 
@@ -270,23 +270,23 @@ describe('Client', function() {
       });
       client.request('get', 'url', 'data');
 
-      assert.strictEqual(responseStub.called, true);
-      assert.deepEqual(responseStub.args[0][2], {
+      assert.strictEqual(respondStub.called, true);
+      assert.deepEqual(respondStub.args[0][2], {
         $status: 200,
         $data: 'success'
       });
     });
   });
 
-  describe('#response', function() {
+  describe('#respond', function() {
     var client;
 
     beforeEach(function() {
       client = new Schema.Client();
     });
 
-    it('respond with resource result', function() {
-      var result = {
+    it('respond with resource data', function() {
+      var response = {
         $url: '/resource/foo',
         $data: {
           id: 1,
@@ -294,22 +294,48 @@ describe('Client', function() {
         }
       };
 
-      client.response('get', 'url', result, function(resource) {
+      client.respond('get', 'url', response, function(err, resource, headers) {
         assert(resource instanceof Schema.Resource);
-        assert.strictEqual(resource.toString(), result.$url);
-        assert.strictEqual(resource.id, result.$data.id);
-        assert.strictEqual(resource.name, result.$data.name);
+        assert.strictEqual(resource.toString(), headers.$url);
+        assert.strictEqual(resource.id, headers.$data.id);
+        assert.strictEqual(resource.name, headers.$data.name);
+        assert.strictEqual(err, undefined);
         assert.strictEqual(this, client);
       });
     });
 
-    it('respond with null result', function() {
-      var result = {
+    it('respond with null data', function() {
+      var response = {
         $data: null
       };
 
-      client.response('get', 'url', result, function(result) {
-        assert.strictEqual(result, null);
+      client.respond('get', 'url', response, function(err, data, headers) {
+        assert.strictEqual(data, null);
+        assert.strictEqual(headers.$data, null);
+        assert.strictEqual(this, client);
+      });
+    });
+
+    it('respond with error', function() {
+      var response = {
+        $error: 'Internal Server Error'
+      };
+
+      client.respond('get', 'url', response, function(err, data, headers) {
+        assert.strictEqual(data, undefined);
+        assert.strictEqual(err, headers.$error);
+        assert.strictEqual(err, response.$error);
+        assert.strictEqual(this, client);
+      });
+    });
+
+    it('respond with nothing', function() {
+      var response = null;
+
+      client.respond('get', 'url', response, function(err, data, headers) {
+        assert.strictEqual(err, 'Empty response from server');
+        assert.strictEqual(data, undefined);
+        assert.strictEqual(headers.$status, 500);
         assert.strictEqual(this, client);
       });
     });
