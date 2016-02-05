@@ -296,6 +296,17 @@ describe('Client', function() {
         assert.strictEqual(err, 'error');
       });
     });
+
+    it('calls back', function() {
+      serverRequestStub.onCall(0).callsArgWith(3, {});
+
+      var calledBack = false;
+      return client.request('get', 'url', 'data', function() {
+        calledBack = true;
+      }).then(function() {
+        assert.strictEqual(calledBack, true);
+      });
+    });
   });
 
   describe('#respond', function() {

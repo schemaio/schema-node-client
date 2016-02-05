@@ -4,7 +4,7 @@ Build and scale ecommerce with Schema. Create a free account at <https://schema.
 
 ## Install
 
-	npm install schema-client
+    npm install schema-client
 
 ## Connect
 
@@ -18,11 +18,11 @@ var client = new Schema.Client('<client-id>', '<client-key>');
 
 ```javascript
 client.get('/products', {active: true}, function(err, products) {
-	if (err) {
-		// handle error
-		return;
-	}
-	console.log(products);
+  if (err) {
+    // handle error
+    return;
+  }
+  console.log(products);
 });
 ```
 
@@ -30,9 +30,9 @@ client.get('/products', {active: true}, function(err, products) {
 
 ```javascript
 client.get('/products', {active: true}).then(function(products) {
-	console.log(products);
+  console.log(products);
 }).catch(function(err) {
-	// handle error
+  // handle error
 });
 ```
 
