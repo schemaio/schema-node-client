@@ -6,15 +6,36 @@ Build and scale ecommerce with Schema. Create a free account at <https://schema.
 
 	npm install schema-client
 
-## Example
+## Connect
 
 ```javascript
 var Schema = require('schema-client');
 
 var client = new Schema.Client('<client-id>', '<client-key>');
+```
 
-client.get('/categories/shoes/products', {color: 'blue'}, function(products) {
+## Usage
+
+```javascript
+client.get('/products', {active: true}, function(err, products) {
+	if (err) {
+		// handle errors
+	}
+	// success
 	console.log(products);
+});
+```
+
+### With promises
+
+```javascript
+client.get('/products', {active: true}).then(function(products) {
+	// success
+	console.log(products);
+}).catch(function(err) {
+	if (err) {
+		// handle errors
+	}
 });
 ```
 
