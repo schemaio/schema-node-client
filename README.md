@@ -19,23 +19,20 @@ var client = new Schema.Client('<client-id>', '<client-key>');
 ```javascript
 client.get('/products', {active: true}, function(err, products) {
 	if (err) {
-		// handle errors
+		// handle error
+		return;
 	}
-	// success
 	console.log(products);
 });
 ```
 
-### With promises
+#### With promises
 
 ```javascript
 client.get('/products', {active: true}).then(function(products) {
-	// success
 	console.log(products);
 }).catch(function(err) {
-	if (err) {
-		// handle errors
-	}
+	// handle error
 });
 ```
 
