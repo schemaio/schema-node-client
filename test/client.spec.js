@@ -276,6 +276,26 @@ describe('Client', function() {
         $data: 'success'
       });
     });
+
+    it('resolves promise', function() {
+      serverRequestStub.onCall(0).callsArgWith(3, {
+        $data: 'success'
+      });
+
+      return client.request('get', 'url', 'data').then(function(data) {
+        assert.strictEqual(data, 'success');
+      });
+    });
+
+    it('rejects promise with error', function() {
+      serverRequestStub.onCall(0).callsArgWith(3, {
+        $error: 'error'
+      });
+
+      return client.request('get', 'url', 'data').catch(function(err) {
+        assert.strictEqual(err, 'error');
+      });
+    });
   });
 
   describe('#respond', function() {
