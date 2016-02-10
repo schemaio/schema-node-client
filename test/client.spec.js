@@ -74,7 +74,9 @@ describe('Client', function() {
         clear: false,
         verifyCert: true,
         version: 1,
-        session: undefined
+        session: undefined,
+        route: undefined,
+        routeClientId: undefined
       };
     });
 
@@ -107,6 +109,17 @@ describe('Client', function() {
       assert.strictEqual(client.params.clientId, 'id2');
       assert.strictEqual(client.params.clientKey, 'key2');
       assert.deepEqual(client.params, testParams);
+    });
+
+    it('initialize params route', function() {
+      client.init({
+        id: 'id',
+        key: 'key',
+        route: {client: 'id2'}
+      });
+
+      assert.deepEqual(client.params.route, {client: 'id2'});
+      assert.deepEqual(client.params.routeClientId, 'id2');
     });
 
     it('initialize throws without client id', function() {
