@@ -71,7 +71,6 @@ describe('Client', function() {
         clientKey: 'key',
         host: 'api.schema.io',
         port: 8443,
-        clear: false,
         verifyCert: true,
         version: 1,
         session: undefined,
@@ -236,6 +235,9 @@ describe('Client', function() {
     });
 
     it('build request headers + authed', function() {
+      client = new Schema.Client('id', 'key', {
+        route: {client: 'id2'}
+      });
       client.authed = false;
       client.request('get', 'url', 'data');
 
@@ -244,7 +246,10 @@ describe('Client', function() {
       assert.deepEqual(serverRequestStub.args[0][2], {
         $client: 'id',
         $key: 'key',
-        $data: 'data'
+        $data: 'data',
+        $route: {
+          client: 'id2'
+        }
       });
     });
 
