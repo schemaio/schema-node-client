@@ -325,6 +325,36 @@ describe('Client', function() {
         assert.strictEqual(calledBack, true);
       });
     });
+
+    it('resolves promised data (object)', function() {
+      var data = {
+        test1: Promise.resolve('hello'),
+        test2: Promise.resolve('world'),
+        test3: 'static'
+      };
+
+      return client.request('get', 'url', data).then(function() {
+        assert.deepEqual(serverRequestStub.args[0][2].$data, {
+          test1: 'hello',
+          test2: 'world',
+          test3: 'static'
+        });
+      });
+    });
+
+    it('resolves promised data (array)', function() {
+      var data = [
+        Promise.resolve('hello'),
+        Promise.resolve('world'),
+        'static'
+      ];
+
+      return client.request('get', 'url', data).then(function() {
+        assert.deepEqual(serverRequestStub.args[0][2].$data, [
+          'hello', 'world', 'static'
+        ]);
+      });
+    });
   });
 
   describe('#respond', function() {
