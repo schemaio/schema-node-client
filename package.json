@@ -1,35 +1,52 @@
 {
   "name": "schema-client",
-  "version": "2.2.1",
-  "description": "Schema API Client for NodeJS",
+  "author": "Schema <support@schema.io>",
+  "version": "3.0.0",
+  "description": "Schema API client for NodeJS",
+  "homepage": "https://schema.io",
+  "license": "MIT",
   "keywords": [
-    "schema",
     "ecommerce",
     "payments",
-    "api"
+    "subscriptions",
+    "credit-card",
+    "schema"
   ],
-  "homepage": "https://github.com/schemaio/schema-node-client",
-  "author": "Schema",
+  "main": "index.js",
+  "bin": {
+    "schema": "./cli/index.js"
+  },
+  "engines": {
+    "node": ">= v0.10.0"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/schemaio/schema-node-client.git"
   },
-  "bugs:": "https://github.com/schemaio/schema-node-client/issues",
-  "engines": {
-    "node": ">= v0.10.0"
+  "dependencies": {
+    "bluebird": "^3.1.1",
+    "commander": "2.9.0",
+    "readline-sync": "1.4.4"
   },
-  "main": "./lib/client.js",
   "devDependencies": {
     "chai": "~3.4.1",
     "eslint": "^1.10.3",
     "mocha": "~2.3.4",
     "sinon": "^1.17.2"
   },
-  "dependencies": {
-    "bluebird": "^3.1.1"
-  },
-  "license": "MIT",
   "scripts": {
-    "test": "mocha"
+    "lint": "eslint lib index.js",
+    "test": "mocha test",
+    "test:watch": "sane \"mocha test\"",
+    "build": "npm run build:pre && npm run build:debug && npm run build:min",
+    "build:pre": "rm -rf schema.js schema.min.js",
+    "build:debug": "browserify index.js --standalone Schema > schema.js",
+    "build:min": "browserify index.js --standalone Schema | uglifyjs -m -o schema.min.js"
+  },
+  "config": {
+    "id": "",
+    "key": "",
+    "dir": "./schema",
+    "cache": true
   }
 }
