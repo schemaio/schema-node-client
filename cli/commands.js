@@ -6,6 +6,9 @@ var schema = require('../index');
 
 var INFO_FILE = '.schema';
 var CONFIG_DIR = '/schema';
+var CONFIG_TYPES = [
+  'models', 'layouts', 'notifications'
+]
 
 var resetAuth = false;
 var clientInstance = null;
@@ -24,11 +27,11 @@ commands.auth = {
 };
 
 commands.pull = {
-  cmd: 'pull',
+  cmd: 'pull [type]',
   description: 'retrieve config files from the server',
-  action: function(act) {
+  action: function(type, act) {
     ensureSetup(act.parent.dir, function(info) {
-      console.log('actions.pull', decryptSecret(info.secretKey));
+      pullConfigs(info, type);
     });
   }
 };
@@ -37,7 +40,9 @@ commands.push = {
   cmd: 'push [files...]',
   description: 'deploy config files to the server',
   action: function(files, act) {
-    console.log('actions.push', files);
+    ensureSetup(act.parent.dir, function(info) {
+      pushConfigs(info, files);
+    });
   }
 };
 
@@ -345,3 +350,217 @@ function decryptSecret(secretEncrypted) {
   secret += decipher.final('utf8');
   return secret;
 }
+
+/**
+ * Pull configs from the server
+ *
+ * @param  object info
+ * @param  string type
+ */
+function pullConfigs(info, type) {
+  var types = type ? [type] : CONFIG_TYPES;
+
+  if (type && CONFIG_TYPES.indexOf(type) === -1) {
+    exitError(
+      'Invalid config type \'' + type + '\''
+      + ' - Must be one of [' + CONFIG_TYPES.join(', ') + ']'
+    );
+  }
+
+  var totalCount = 0;
+  var startTime = Date.now();
+  var promise = schema.Promise.bind(this);
+
+  types.forEach(function(configType) {
+    promise = promise.then(function() {
+      var configPath = path.join(info.dir, configType);
+      console.log('\x1b[32m\nPulling :' + configType + '\x1b[0m');
+      return client(info).get('/:' + configType, {
+        limit: null
+      }).then(function(res) {
+        if (!res || !res.results.length) {
+          return;
+        }
+        if (!fs.existsSync(configPath)) {
+          fs.mkdirSync(configPath);
+        }
+        res.results.forEach(function(record) {
+          var baseId = record.client_id ? (record.client_id + '.' + record.api) : record.api;
+          var recordFile = record.id.split(baseId)[1]
+            .replace(/\./g, '/')
+            .replace(/\:/g, '/')
+            + '.json';
+          //var recordFile = '/' + record.name + '.json';
+          console.log('    > \x1b[1m' + configType + recordFile + '\x1b[0m');
+          writeFilePathSync(configPath + recordFile, JSON.stringify(record.toObject(), null, 2));
+          totalCount++;
+        });
+      }).catch(function(err) {
+        console.log(err.stack);
+        exitError(err.toString());
+      });
+    });
+  });
+
+  promise.then(function() {
+    totalSeconds = ((Date.now() - startTime) / 1000) + ' seconds';
+    console.log('\n\x1b[32mOK. Retrieved ' + totalCount + ' configurations in ' + totalSeconds + '\x1b[0m');
+    process.exit();
+  });
+
+  return promise;
+}
+
+/**
+ * Push configs to the server
+ *
+ * @param  object info
+ * @param  array files
+ */
+function pushConfigs(info, filesOrTypes) {
+  var filesByType = resolveFilesByType(info, filesOrTypes);
+
+  var totalCount = 0;
+  var startTime = Date.now();
+  var promise = schema.Promise.bind(this);
+
+  var configDataByPath = {};
+  for (var configType in filesByType) {
+    filesByType[configType].forEach(function(filePath) {
+      try {
+        configDataByPath[filePath] = require(filePath);
+      } catch (err) {
+        exitError(
+          'Unable to load ' + filePath.replace(info.dir, '')
+          + '. Maybe a syntax error?'
+        );
+      }
+      if (!configDataByPath[filePath] || !configDataByPath[filePath].id) {
+        exitError(
+          'Configuration missing `id` property in ' + filePath.replace(info.dir, '')
+        );
+      }
+    });
+  }
+
+  for (var configType in filesByType) {
+    promise = promise.then((function(configType) {
+      console.log('\x1b[32m\nPushing :' + configType + '\x1b[0m');
+      var promise2 = schema.Promise.bind(this);
+      filesByType[configType].forEach(function(filePath) {
+        promise2 = promise2.then(function() {
+          var configUrl = '/:' + configType + '/{id}';
+          var configData = configDataByPath[filePath];
+          return client(info).put(configUrl, configData).then(function(record) {
+            if (!record) {
+              console.log('\x1b[31mError: Invalid response from PUT '+ configUrl + '\x1b[0m');
+              return;
+            }
+            var recordFile = filePath.replace(info.dir + '/', '');
+            var change = configData.version === record.version ? '(no change)' : '(now ' + record.version + ')';
+            console.log('    > \x1b[1m' + recordFile + '\x1b[0m ' + change);
+            writeFilePathSync(filePath, JSON.stringify(record.toObject(), null, 2));
+            totalCount++;
+          }).catch(function(err) {
+            console.log(filePath);
+            exitError(err.toString());
+          });
+        });
+      });
+      return promise2;
+    }).bind(this, configType));
+  }
+
+  promise.then(function() {
+    totalSeconds = ((Date.now() - startTime) / 1000) + ' seconds';
+    console.log('\n\x1b[32mOK. Pushed ' + totalCount + ' configurations in ' + totalSeconds + '\x1b[0m');
+    process.exit();
+  });
+
+  return promise;
+}
+
+/**
+ *
+ */
+function resolveFilesByType(info, files) {
+  var filesByType = {};
+
+  if (!files || !files.length) {
+    files = [ info.dir ];
+  }
+
+  files.forEach(function(file) {
+    // Can be an explicit type
+    var type = file;
+    if (CONFIG_TYPES.indexOf(type) !== -1) {
+      var configPath = path.join(info.dir, type);
+      filesByType[type] = findFiles(configPath, info.dir + '/' + type);
+      return;
+    }
+
+    // Or file
+    var filePath = path.resolve(file);
+    if (filePath.indexOf(info.dir) !== 0 || !fs.existsSync(filePath)) {
+      exitError('Error: Not a valid config file path: ' + file);
+    }
+
+    file = filePath.replace(info.dir + '/', '').split('/');
+    var type = file.shift();
+
+    if (type.length) {
+      filesByType[type] = filesByType[type] || [];
+      if (fs.statSync(filePath).isDirectory()) {
+        filesByType[type] = filesByType[type].concat(
+          findFiles(filePath, info.dir + '/' + type)
+        );
+      } else {
+        filesByType[type].push(filePath);
+      }
+    } else {
+      CONFIG_TYPES.forEach(function(type) {
+        var configPath = path.join(info.dir, type);
+        filesByType[type] = findFiles(configPath, info.dir + '/' + type);
+      });
+    }
+  });
+
+  return filesByType;
+}
+
+/**
+ *
+ */
+function findFiles(dir, root, results) {
+  var files = fs.readdirSync(dir);
+  var results = results || [];
+  files.forEach(function(file) {
+    var filePath = dir + '/' + file;
+    if (fs.statSync(filePath).isDirectory()) {
+      results = findFiles(filePath, root, results);
+    } else {
+      results.push(filePath);
+    }
+  });
+  return results;
+};
+
+/**
+ * Write a file and directory structure if not exists
+ *
+ * @param  string filePath
+ * @param  mixed data
+ */
+function writeFilePathSync(filePath, data, isDir) {
+  ensureDirectoryExists(filePath);
+  return fs.writeFileSync(filePath, data);
+
+  function ensureDirectoryExists(filePath) {
+    var dirPath = path.dirname(filePath);
+    if (dirPath === '/') return;
+    if (!fs.existsSync(dirPath)) {
+      ensureDirectoryExists(dirPath);
+      fs.mkdirSync(dirPath);
+    }
+  }
+};
