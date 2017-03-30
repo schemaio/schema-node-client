@@ -311,7 +311,7 @@ describe('Client', function() {
       });
 
       return client.request('get', 'url', 'data').catch(function(err) {
-        assert.strictEqual(err, 'error');
+        assert.strictEqual(err.message, 'error');
       });
     });
 
