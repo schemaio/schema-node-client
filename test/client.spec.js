@@ -74,6 +74,7 @@ describe('Client', function() {
         verifyCert: true,
         version: 1,
         session: undefined,
+        timeout: undefined,
         route: undefined,
         routeClientId: undefined
       };
