@@ -30,6 +30,6 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha lib/*.test.js"
   }
 }
