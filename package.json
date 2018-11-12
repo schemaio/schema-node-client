@@ -16,7 +16,7 @@
   },
   "bugs:": "https://github.com/schemaio/schema-node-client/issues",
   "engines": {
-    "node": ">= v0.10.0"
+    "node": ">= v8.0.0"
   },
   "main": "./lib/client.js",
   "devDependencies": {
